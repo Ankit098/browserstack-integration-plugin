@@ -3,6 +3,7 @@ package com.browserstack.automate.ci.common;
 import com.browserstack.automate.ci.jenkins.BrowserStackCredentials;
 import com.browserstack.automate.ci.jenkins.local.JenkinsBrowserStackLocal;
 import com.browserstack.automate.ci.jenkins.local.LocalConfig;
+import com.browserstack.automate.ci.jenkins.observability.ObservabilityConfig;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
@@ -33,16 +34,18 @@ public class BrowserStackBuildWrapperOperations {
     private PrintStream logger;
     private LocalConfig localConfig;
     private JenkinsBrowserStackLocal browserstackLocal;
+    private ObservabilityConfig observabilityConfig;
 
     public BrowserStackBuildWrapperOperations(BrowserStackCredentials credentials,
                                               boolean isTearDownPhase, PrintStream logger, LocalConfig localConfig,
-                                              JenkinsBrowserStackLocal browserStackLocal) {
+                                              JenkinsBrowserStackLocal browserStackLocal, ObservabilityConfig observabilityConfig) {
         super();
         this.credentials = credentials;
         this.isTearDownPhase = isTearDownPhase;
         this.logger = logger;
         this.localConfig = localConfig;
         this.browserstackLocal = browserStackLocal;
+        this.observabilityConfig = observabilityConfig;
     }
 
     public static ListBoxModel doFillCredentialsIdItems(Item context) {
@@ -135,6 +138,9 @@ public class BrowserStackBuildWrapperOperations {
             // To keep it consistent with other CI/CD plugins.
             env.put(BrowserStackEnvVars.BROWSERSTACK_BUILD_NAME, buildTag);
             logEnvVar(BrowserStackEnvVars.BROWSERSTACK_BUILD_NAME, buildTag);
+
+            // Maintaining this to verify if above env vars were set by plugin
+            env.put("BROWSERSTACK_PLUGIN_INVOKED", "true");
         }
 
         String isLocalEnabled = localConfig != null ? "true" : "false";
@@ -147,6 +153,22 @@ public class BrowserStackBuildWrapperOperations {
         if (StringUtils.isNotBlank(localIdentifier)) {
             env.put(BrowserStackEnvVars.BROWSERSTACK_LOCAL_IDENTIFIER, localIdentifier);
             logEnvVar(BrowserStackEnvVars.BROWSERSTACK_LOCAL_IDENTIFIER, localIdentifier);
+        }
+
+        String tests =
+                (observabilityConfig != null) ? observabilityConfig.getTests() : "";
+
+        if (StringUtils.isNotBlank(tests)) {
+            env.put(BrowserStackEnvVars.BROWSERSTACK_RERUN_TESTS, tests);
+            logEnvVar(BrowserStackEnvVars.BROWSERSTACK_RERUN_TESTS, tests);
+        }
+
+        String reRun =
+                (observabilityConfig != null) ? observabilityConfig.getReRun() : "";
+
+        if (StringUtils.isNotBlank(reRun)) {
+            env.put(BrowserStackEnvVars.BROWSERSTACK_RERUN, reRun);
+            logEnvVar(BrowserStackEnvVars.BROWSERSTACK_RERUN, reRun);
         }
     }
 

@@ -8,6 +8,7 @@ import com.browserstack.automate.ci.jenkins.BrowserStackCredentials;
 import com.browserstack.automate.ci.jenkins.local.BrowserStackLocalUtils;
 import com.browserstack.automate.ci.jenkins.local.JenkinsBrowserStackLocal;
 import com.browserstack.automate.ci.jenkins.local.LocalConfig;
+import com.browserstack.automate.ci.jenkins.observability.ObservabilityConfig;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.Run;
@@ -33,13 +34,15 @@ public class BrowserStackPipelineStepExecution extends StepExecution {
     private BodyExecution body;
     private LocalConfig localConfig;
     private JenkinsBrowserStackLocal browserStackLocal;
+    private ObservabilityConfig observabilityConfig;
 
     protected BrowserStackPipelineStepExecution(StepContext context, String credentialsId,
-                                                LocalConfig localConfig) {
+                                                LocalConfig localConfig, ObservabilityConfig observabilityConfig) {
         super(context);
         this.context = context;
         this.credentialsId = credentialsId;
         this.localConfig = localConfig;
+        this.observabilityConfig = observabilityConfig;
     }
 
     @Override
@@ -91,7 +94,7 @@ public class BrowserStackPipelineStepExecution extends StepExecution {
 
         BrowserStackBuildWrapperOperations buildWrapperOperations =
                 new BrowserStackBuildWrapperOperations(credentials, false, taskListener.getLogger(),
-                        localConfig, browserStackLocal);
+                        localConfig, browserStackLocal, observabilityConfig);
 
         EnvVars overrides = run.getEnvironment(taskListener);
         HashMap<String, String> overridesMap = new HashMap<String, String>();
